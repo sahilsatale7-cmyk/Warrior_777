@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Our Rooms - Luxe Haven Resort{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 2rem;">
+    <div class="container">
+        <div class="section-header">
+            <h2>Our Rooms & Suites</h2>
+            <p>Find your perfect accommodation</p>
+        </div>
+
+        <!-- Filters -->
+        <form class="filter-bar" method="GET" action="{{ url_for('rooms') }}">
+            <div class="filter-group">
+                <label>Room Type</label>
+                <select name="type" class="form-select">
+                    <option value="">All Types</option>
+                    {% for rt in room_types %}
+                    <option value="{{ rt }}" {% if filters.type == rt %}selected{% endif %}>{{ rt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Min Price</label>
+                <input type="number" name="min_price" class="form-control" placeholder="₹0" value="{{ filters.min_price }}">
+            </div>
+            <div class="filter-group">
+                <label>Max Price</label>
+                <input type="number" name="max_price" class="form-control" placeholder="₹10000" value="{{ filters.max_price }}">
+            </div>
+            <div class="filter-group">
+                <label>Guests</label>
+                <input type="number" name="guests" class="form-control" placeholder="1" min="1" value="{{ filters.guests }}">
+            </div>
+            <button type="submit" class="btn btn-primary" style="height: fit-content;">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+            <a href="{{ url_for('rooms') }}" class="btn btn-outline" style="height: fit-content;">
+                <i class="fas fa-undo"></i> Reset
+            </a>
+        </form>
+
+        <!-- Room Grid -->
+        <div class="room-grid">
+            {% for room in rooms %}
+            <div class="room-card">
+                <div class="room-image">
+                    <img src="{{ room.images[0] if room.images else 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800' }}" alt="{{ room.name }}">
+                    <span class="room-badge">{{ room.room_type }}</span>
+                    <div class="room-price-tag">₹{{ "%.0f"|format(room.base_price) }}<small>/night</small></div>
+                </div>
+                <div class="room-info">
+                    <h3>{{ room.name }}</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 0.5rem;">{{ room.description[:120] }}...</p>
+                    <div class="room-features">
+                        <span class="feature-tag"><i class="fas fa-user"></i> {{ room.max_guests }} Guests</span>
+                        <span class="feature-tag"><i class="fas fa-bed"></i> {{ room.bed_type }}</span>
+                        <span class="feature-tag"><i class="fas fa-ruler-combined"></i> {{ room.size }}</span>
+                    </div>
+                    <div class="amenities-grid">
+                        {% for amenity in room.amenities[:4] %}
+                        <span class="amenity-tag" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                            <i class="fas fa-check"></i> {{ amenity }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    <div class="room-footer" style="margin-top: 1rem;">
+                        <a href="{{ url_for('room_detail', room_id=room._id) }}" class="btn btn-primary btn-sm">
+                            View Details <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
+                <i class="fas fa-bed" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                <h3 style="color: var(--text-light);">No rooms found matching your criteria</h3>
+                <a href="{{ url_for('rooms') }}" class="btn btn-outline" style="margin-top: 1rem;">View All Rooms</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+

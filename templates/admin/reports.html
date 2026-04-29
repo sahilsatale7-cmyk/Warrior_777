@@ -1,0 +1,192 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports & Analytics{% endblock %}
+{% block breadcrumb %}Reports{% endblock %}
+
+{% block content %}
+<!-- Revenue Summary -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-rupee-sign"></i></div>
+        <div class="stat-details">
+            <h3>₹{{ "%.0f"|format(stats.total_revenue) }}</h3>
+            <p>Total Revenue</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-details">
+            <h3>{{ stats.total_bookings }}</h3>
+            <p>Total Bookings</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-bed"></i></div>
+        <div class="stat-details">
+            <h3>{{ stats.avg_occupancy }}%</h3>
+            <p>Avg Occupancy</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-receipt"></i></div>
+        <div class="stat-details">
+            <h3>₹{{ "%.2f"|format(stats.avg_booking_value) }}</h3>
+            <p>Avg Booking Value</p>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <!-- Monthly Revenue Chart -->
+    <div class="data-card">
+        <div class="data-header">
+            <h3><i class="fas fa-chart-line"></i> Monthly Revenue</h3>
+            <button class="btn btn-outline btn-sm" onclick="exportToCSV('revenue-table', 'revenue-report')">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+        <div style="padding: 1.5rem;">
+            <canvas id="revenueChart" height="120"></canvas>
+        </div>
+        <table class="data-table" id="revenue-table" style="display: none;">
+            <thead>
+                <tr><th>Month</th><th>Revenue</th><th>Bookings</th></tr>
+            </thead>
+            <tbody>
+                {% for m in monthly_data %}
+                <tr><td>{{ m.month }}</td><td>{{ m.revenue }}</td><td>{{ m.bookings }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Room Performance -->
+    <div class="data-card">
+        <div class="data-header">
+            <h3><i class="fas fa-trophy"></i> Room Performance</h3>
+        </div>
+        <div style="padding: 1.5rem;">
+            <canvas id="roomChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Status Breakdown -->
+<div class="data-card" style="margin-top: 1.5rem;">
+    <div class="data-header">
+        <h3><i class="fas fa-chart-pie"></i> Booking Status Distribution</h3>
+    </div>
+    <div style="padding: 1.5rem; max-width: 500px; margin: 0 auto;">
+        <canvas id="statusChart" height="200"></canvas>
+    </div>
+</div>
+
+<!-- Detailed Reports Table -->
+<div class="data-card" style="margin-top: 1.5rem;">
+    <div class="data-header">
+        <h3><i class="fas fa-table"></i> Monthly Breakdown</h3>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Bookings</th>
+                <th>Confirmed</th>
+                <th>Cancelled</th>
+                <th>Revenue</th>
+                <th>Avg/Night</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in monthly_data %}
+            <tr>
+                <td><strong>{{ m.month }}</strong></td>
+                <td>{{ m.bookings }}</td>
+                <td><span class="badge badge-success">{{ m.confirmed }}</span></td>
+                <td><span class="badge badge-danger">{{ m.cancelled }}</span></td>
+                <td style="font-weight: 600;">₹{{ "%.2f"|format(m.revenue) }}</td>
+                <td>₹{{ "%.2f"|format(m.avg_night) }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem;">No data available</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const monthlyData = {{ monthly_data | tojson }};
+
+// Revenue Chart
+new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+        labels: monthlyData.map(d => d.month),
+        datasets: [{
+            label: 'Revenue (₹)',
+            data: monthlyData.map(d => d.revenue),
+            backgroundColor: 'rgba(26, 54, 93, 0.8)',
+            borderRadius: 6
+        }, {
+            label: 'Bookings',
+            data: monthlyData.map(d => d.bookings),
+            type: 'line',
+            borderColor: '#d4a853',
+            backgroundColor: 'rgba(212, 168, 83, 0.1)',
+            fill: true,
+            tension: 0.4,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+            y: { beginAtZero: true, ticks: { callback: v => '₹' + v } },
+            y1: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } }
+        }
+    }
+});
+
+// Room Performance Chart
+const roomPerf = {{ room_performance | tojson }};
+new Chart(document.getElementById('roomChart'), {
+    type: 'doughnut',
+    data: {
+        labels: roomPerf.map(r => r.name),
+        datasets: [{
+            data: roomPerf.map(r => r.revenue),
+            backgroundColor: ['#1a365d', '#2c5282', '#4299e1', '#d4a853', '#48bb78', '#ed8936']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+
+// Status Chart
+const statusData = {{ status_breakdown | tojson }};
+new Chart(document.getElementById('statusChart'), {
+    type: 'pie',
+    data: {
+        labels: Object.keys(statusData),
+        datasets: [{
+            data: Object.values(statusData),
+            backgroundColor: ['#48bb78', '#ed8936', '#e53e3e', '#4299e1']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+</script>
+{% endblock %}
+

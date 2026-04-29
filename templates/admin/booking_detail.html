@@ -1,0 +1,275 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Booking #{{ booking._id }}{% endblock %}
+{% block page_title %}Booking Details{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('admin_bookings') }}">Bookings</a> / Detail{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <!-- Editable Booking Info -->
+    <div class="data-card">
+        <div class="data-header">
+            <h3><i class="fas fa-receipt"></i> Booking Information</h3>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+                <span class="badge badge-{{ booking.status }}">{{ booking.status }}</span>
+                <button onclick="toggleEdit()" class="btn-edit-toggle" id="editBtn">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+        </div>
+        
+        <!-- View Mode -->
+        <div id="viewMode" style="padding: 1.5rem;">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">Guest Name</label>
+                    <p style="font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem;">{{ booking.guest_name }}</p>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">Email</label>
+                    <p style="font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem;">{{ booking.guest_email }}</p>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">Phone</label>
+                    <p style="font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem;">{{ booking.guest_phone or 'N/A' }}</p>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">Guests</label>
+                    <p style="font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem;">{{ booking.guests }}</p>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">ID Type</label>
+                    <p style="font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem;">{{ booking.id_type or 'N/A' }}</p>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">ID Number</label>
+                    <p style="font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem;">{{ booking.id_number or 'N/A' }}</p>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">Location</label>
+                    <p style="font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem;">{{ booking.location or 'N/A' }}</p>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">Status</label>
+                    <p style="font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem;"><span class="badge badge-{{ booking.status }}">{{ booking.status }}</span></p>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">Check-in</label>
+                    <p style="font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem;"><i class="fas fa-calendar-alt" style="color: var(--primary);"></i> {{ booking.check_in }}</p>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">Check-out</label>
+                    <p style="font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem;"><i class="fas fa-calendar-alt" style="color: var(--primary);"></i> {{ booking.check_out }}</p>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">Nights</label>
+                    <p style="font-weight: 600; font-size: 1.1rem; margin-top: 0.25rem;">{{ booking.nights }}</p>
+                </div>
+                <div>
+                    <label style="color: var(--text-muted); font-size: 0.85rem;">Total Price</label>
+                    <p style="font-weight: 600; font-size: 1.25rem; margin-top: 0.25rem; color: var(--primary);">₹{{ "%.2f"|format(booking.total_price) }}</p>
+                </div>
+            </div>
+            {% if booking.special_requests %}
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <label style="color: var(--text-muted); font-size: 0.85rem;">Special Requests</label>
+                <p style="margin-top: 0.5rem;">{{ booking.special_requests }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Payment Information -->
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 1rem;"><i class="fas fa-credit-card"></i> Payment Information</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px;">
+                        <label style="color: var(--text-muted); font-size: 0.8rem;">Payment Method</label>
+                        <p style="font-weight: 600; margin-top: 0.25rem;">{{ booking.payment_method or 'N/A' }}</p>
+                    </div>
+                    <div style="background: #f8fafc; padding: 0.75rem; border-radius: 8px;">
+                        <label style="color: var(--text-muted); font-size: 0.8rem;">Payment Status</label>
+                        <p style="margin-top: 0.25rem;">
+                            <span class="badge badge-{% if booking.payment_status == 'paid' %}confirmed{% elif booking.payment_status == 'partial' %}pending{% else %}cancelled{% endif %}">
+                                {{ booking.payment_status or 'pending' }}
+                            </span>
+                        </p>
+                    </div>
+                    <div style="background: #f0fdf4; padding: 0.75rem; border-radius: 8px; border: 1px solid #bbf7d0;">
+                        <label style="color: #16a34a; font-size: 0.8rem;">Advance Paid</label>
+                        <p style="font-weight: 700; font-size: 1.1rem; color: #16a34a; margin-top: 0.25rem;">₹{{ "%.2f"|format(booking.advance_paid or 0) }}</p>
+                    </div>
+                    <div style="background: {% if (booking.remaining_balance or booking.total_price) == 0 %}#f0fdf4{% else %}#fef2f2{% endif %}; padding: 0.75rem; border-radius: 8px; border: 1px solid {% if (booking.remaining_balance or booking.total_price) == 0 %}#bbf7d0{% else %}#fecaca{% endif %};">
+                        <label style="color: {% if (booking.remaining_balance or booking.total_price) == 0 %}#16a34a{% else %}#dc2626{% endif %}; font-size: 0.8rem;">Remaining Balance</label>
+                        <p style="font-weight: 700; font-size: 1.1rem; color: {% if (booking.remaining_balance or booking.total_price) == 0 %}#16a34a{% else %}#dc2626{% endif %}; margin-top: 0.25rem;">₹{{ "%.2f"|format(booking.remaining_balance if booking.remaining_balance is defined else booking.total_price) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <label style="color: var(--text-muted); font-size: 0.85rem;">Created</label>
+                <p style="margin-top: 0.5rem;">{{ booking.created_at }}</p>
+            </div>
+        </div>
+
+        <!-- Edit Mode -->
+        <div id="editMode" style="padding: 1.5rem; display: none;">
+            <form method="POST" action="{{ url_for('edit_booking', booking_id=booking._id) }}">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    <div class="form-group">
+                        <label>Guest Name</label>
+                        <input type="text" name="guest_name" class="form-control" value="{{ booking.guest_name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="guest_email" class="form-control" value="{{ booking.guest_email }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" name="guest_phone" class="form-control" value="{{ booking.guest_phone }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Guests</label>
+                        <input type="number" name="guests" class="form-control" value="{{ booking.guests }}" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Check-in Date</label>
+                        <input type="date" name="check_in" class="form-control" value="{{ booking.check_in }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Check-out Date</label>
+                        <input type="date" name="check_out" class="form-control" value="{{ booking.check_out }}" required>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Status</label>
+                        <select name="status" class="form-select">
+                            <option value="pending" {% if booking.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                            <option value="checked_in" {% if booking.status == 'checked_in' %}selected{% endif %}>Checked In</option>
+                            <option value="checked_out" {% if booking.status == 'checked_out' %}selected{% endif %}>Checked Out</option>
+                            <option value="cancelled" {% if booking.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Special Requests</label>
+                        <textarea name="special_requests" class="form-control" rows="3">{{ booking.special_requests }}</textarea>
+                    </div>
+
+                    <!-- Payment Edit Fields -->
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select name="payment_method" class="form-select">
+                            <option value="">Select</option>
+                            <option value="Cash" {% if booking.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                            <option value="UPI" {% if booking.payment_method == 'UPI' %}selected{% endif %}>UPI</option>
+                            <option value="Credit Card" {% if booking.payment_method == 'Credit Card' %}selected{% endif %}>Credit Card</option>
+                            <option value="Debit Card" {% if booking.payment_method == 'Debit Card' %}selected{% endif %}>Debit Card</option>
+                            <option value="Net Banking" {% if booking.payment_method == 'Net Banking' %}selected{% endif %}>Net Banking</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Advance Paid (₹)</label>
+                        <input type="number" name="advance_paid" class="form-control" 
+                               value="{{ booking.advance_paid or 0 }}" min="0" step="0.01">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="toggleEdit()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Room Info & Actions -->
+    <div>
+        <div class="data-card" style="margin-bottom: 1.5rem;">
+            <div class="data-header">
+                <h3><i class="fas fa-bed"></i> Room</h3>
+            </div>
+            <div style="padding: 1.5rem;">
+                {% if room %}
+                <img src="{{ room.images[0] if room.images else 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800' }}" 
+                     style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem;" alt="">
+                <h4 style="color: var(--primary);">{{ room.name }}</h4>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">{{ room.room_type }} | {{ room.size }}</p>
+                <p style="margin-top: 0.5rem;"><strong>₹{{ "%.2f"|format(room.base_price) }}</strong> / night</p>
+                {% if room.amenities %}
+                <div style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.35rem;">
+                    {% for amenity in room.amenities[:6] %}
+                    <span style="font-size:0.7rem;padding:0.15rem 0.5rem;background:#f1f5f9;border-radius:12px;color:var(--text-muted);">{{ amenity }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% else %}
+                <p>Room not found</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="data-card">
+            <div class="data-header">
+                <h3><i class="fas fa-cogs"></i> Quick Actions</h3>
+            </div>
+            <div style="padding: 1.5rem;">
+                <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking._id) }}" style="margin-bottom: 1rem;">
+                    <label style="color: var(--text-muted); font-size: 0.85rem; display: block; margin-bottom: 0.5rem;">Update Status</label>
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="pending" {% if booking.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                        <option value="checked_in" {% if booking.status == 'checked_in' %}selected{% endif %}>Checked In</option>
+                        <option value="checked_out" {% if booking.status == 'checked_out' %}selected{% endif %}>Checked Out</option>
+                        <option value="cancelled" {% if booking.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </form>
+                <a href="{{ url_for('admin_bookings') }}" class="btn btn-outline" style="width: 100%;">
+                    <i class="fas fa-arrow-left"></i> Back to Bookings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-edit-toggle {
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.btn-edit-toggle:hover {
+    background: var(--primary);
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleEdit() {
+    const viewMode = document.getElementById('viewMode');
+    const editMode = document.getElementById('editMode');
+    const editBtn = document.getElementById('editBtn');
+    
+    if (editMode.style.display === 'none') {
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+        editBtn.innerHTML = '<i class="fas fa-eye"></i> View';
+    } else {
+        viewMode.style.display = 'block';
+        editMode.style.display = 'none';
+        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+    }
+}
+</script>
+{% endblock %}

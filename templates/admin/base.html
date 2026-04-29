@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} - Luxe Haven</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='images/favicon-192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='images/favicon-512.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon-192.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>
+                <span style="width:34px;height:34px;background:linear-gradient(135deg,#f97316,#ea580c);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;flex-shrink:0;"><i class="fas fa-hotel"></i></span>
+                Luxe Haven
+            </h2>
+        </div>
+        <div class="sidebar-role">Admin</div>
+        <nav class="sidebar-menu">
+            <a href="{{ url_for('admin_dashboard') }}" class="menu-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="{{ url_for('admin_rooms') }}" class="menu-item {% if request.endpoint in ['admin_rooms','add_room','edit_room'] %}active{% endif %}">
+                <i class="fas fa-bed"></i> Rooms
+            </a>
+            <a href="{{ url_for('admin_bookings') }}" class="menu-item {% if request.endpoint == 'admin_bookings' %}active{% endif %}">
+                <i class="fas fa-calendar-check"></i> Bookings
+            </a>
+            <a href="{{ url_for('admin_guests') }}" class="menu-item {% if request.endpoint == 'admin_guests' %}active{% endif %}">
+                <i class="fas fa-users"></i> Guests
+            </a>
+            <a href="{{ url_for('admin_seasonal_pricing') }}" class="menu-item {% if request.endpoint == 'admin_seasonal_pricing' %}active{% endif %}">
+                <i class="fas fa-tags"></i> Seasonal Pricing
+            </a>
+            <a href="{{ url_for('admin_calendar') }}" class="menu-item {% if request.endpoint == 'admin_calendar' %}active{% endif %}">
+                <i class="fas fa-calendar-alt"></i> Availability
+            </a>
+            <a href="{{ url_for('admin_reports') }}" class="menu-item {% if request.endpoint == 'admin_reports' %}active{% endif %}">
+                <i class="fas fa-chart-bar"></i> Reports
+            </a>
+            <hr class="sidebar-divider">
+            <a href="{{ url_for('admin_settings') }}" class="menu-item {% if request.endpoint == 'admin_settings' %}active{% endif %}">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+            <a href="{{ url_for('index') }}" class="menu-item" target="_blank">
+                <i class="fas fa-external-link-alt"></i> View Website
+            </a>
+            <a href="{{ url_for('admin_logout') }}" class="menu-item">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+        <div class="top-bar">
+            <div class="page-title">
+                <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                <div class="breadcrumb">Welcome back! Here's what's happening today.</div>
+            </div>
+            <div class="user-menu">
+                <span><i class="fas fa-user-shield"></i> Administrator</span>
+                <div class="user-avatar">A</div>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+</div>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

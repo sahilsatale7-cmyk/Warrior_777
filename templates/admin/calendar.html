@@ -1,0 +1,119 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Availability Calendar{% endblock %}
+{% block page_title %}Room Availability Calendar{% endblock %}
+{% block breadcrumb %}Availability{% endblock %}
+
+{% block content %}
+<div class="filters-bar">
+    <div class="search-box" style="flex: 0 0 auto;">
+        <select class="form-select" style="width: 250px;" onchange="window.location.href='?room_id='+this.value+'&year={{ year }}&month={{ month }}'">
+            <option value="">All Rooms</option>
+            {% for room in rooms %}
+            <option value="{{ room._id }}" {% if selected_room == room._id|string %}selected{% endif %}">{{ room.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <a href="?room_id={{ selected_room }}&year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline btn-sm">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+        <span style="font-weight: 600; min-width: 120px; text-align: center;">{{ month_name }} {{ year }}</span>
+        <a href="?room_id={{ selected_room }}&year={{ next_year }}&month={{ next_month }}" class="btn btn-outline btn-sm">
+            <i class="fas fa-chevron-right"></i>
+        </a>
+    </div>
+    <a href="?room_id={{ selected_room }}&year={{ now.year }}&month={{ now.month }}" class="btn btn-primary btn-sm">Today</a>
+</div>
+
+{% if selected_room %}
+{% set room = rooms|selectattr('_id', 'equalto', selected_room)|first %}
+<div class="data-card" style="margin-bottom: 1.5rem;">
+    <div class="data-header">
+        <h3><i class="fas fa-bed"></i> {{ room.name if room else 'Unknown Room' }}</h3>
+        <span style="color: var(--text-muted);">{{ room.room_type if room else '' }} | ₹{{ "%.2f"|format(room.base_price) if room else '0.00' }}/night</span>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div class="admin-calendar">
+            <div class="admin-cal-header">Sun</div>
+            <div class="admin-cal-header">Mon</div>
+            <div class="admin-cal-header">Tue</div>
+            <div class="admin-cal-header">Wed</div>
+            <div class="admin-cal-header">Thu</div>
+            <div class="admin-cal-header">Fri</div>
+            <div class="admin-cal-header">Sat</div>
+            {% for day in calendar_days %}
+            <div class="admin-cal-day {% if day.is_past %}past{% elif day.is_booked %}booked{% else %}available{% endif %}">
+                <span>{{ day.day }}</span>
+                {% if day.is_booked %}
+                <small style="font-size: 0.65rem;">Booked</small>
+                {% elif not day.is_past %}
+                <small style="font-size: 0.65rem;">₹{{ "%.0f"|format(day.price) }}</small>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <div style="display: flex; gap: 1.5rem; margin-top: 1rem; justify-content: center;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="width: 16px; height: 16px; background: #d1fae5; border-radius: 4px;"></div>
+                <span style="font-size: 0.85rem;">Available</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="width: 16px; height: 16px; background: #fee2e2; border-radius: 4px;"></div>
+                <span style="font-size: 0.85rem;">Booked</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="width: 16px; height: 16px; background: #f1f5f9; border-radius: 4px;"></div>
+                <span style="font-size: 0.85rem;">Past</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bookings for this room this month -->
+<div class="data-card">
+    <div class="data-header">
+        <h3><i class="fas fa-calendar-check"></i> Bookings This Month</h3>
+        <span style="color: var(--text-muted);">{{ month_bookings|length }} bookings</span>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Guest</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Nights</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in month_bookings %}
+            <tr>
+                <td>
+                    <div style="font-weight: 600;">{{ booking.guest_name }}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">{{ booking.guest_email }}</div>
+                </td>
+                <td>{{ booking.check_in }}</td>
+                <td>{{ booking.check_out }}</td>
+                <td>{{ booking.nights }}</td>
+                <td><span class="badge badge-{{ booking.status }}">{{ booking.status }}</span></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem;">No bookings this month</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="data-card">
+    <div style="text-align: center; padding: 4rem; color: var(--text-muted);">
+        <i class="fas fa-calendar-alt" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+        <h3>Select a Room</h3>
+        <p>Choose a room from the dropdown above to view its availability calendar.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Welcome - Luxe Haven Resort{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content animate-fade-in">
+        <div class="hero-badge"><i class="fas fa-star"></i> Welcome to Luxe Haven</div>
+        <h1>Experience <span class="accent">Luxury</span><br>Like Never Before</h1>
+        <p>Where elegance meets comfort. Discover our world-class amenities and exceptional service that defines true hospitality.</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('rooms') }}" class="btn btn-primary btn-lg">Book Your Stay &rarr;</a>
+            <a href="{{ url_for('rooms') }}" class="btn-hero-outline">Explore Rooms</a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="section stats-section">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fas fa-bed"></i></div>
+                <div class="stat-details">
+                    <h3>{{ stats.total_rooms }}</h3>
+                    <p>Luxury Rooms</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-calendar-check"></i></div>
+                <div class="stat-details">
+                    <h3>{{ stats.total_bookings }}</h3>
+                    <p>Happy Stays</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-smile"></i></div>
+                <div class="stat-details">
+                    <h3>{{ stats.happy_guests }}</h3>
+                    <p>Happy Guests</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Rooms -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Featured Rooms & Suites</h2>
+            <p>Handpicked accommodations for your perfect stay</p>
+        </div>
+        <div class="room-grid">
+            {% for room in rooms %}
+            <div class="room-card">
+                <div class="room-image">
+                    <img src="{{ room.images[0] if room.images else 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800' }}" alt="{{ room.name }}">
+                    <span class="room-badge">{{ room.room_type }}</span>
+                    <div class="room-price-tag">₹{{ "%.0f"|format(room.base_price) }}<small>/night</small></div>
+                </div>
+                <div class="room-info">
+                    <h3>{{ room.name }}</h3>
+                    <p class="room-desc">{{ room.description[:120] }}...</p>
+                    <div class="room-features">
+                        <span class="feature-tag"><i class="fas fa-user"></i> {{ room.max_guests }} Guests</span>
+                        <span class="feature-tag"><i class="fas fa-bed"></i> {{ room.bed_type }}</span>
+                        <span class="feature-tag"><i class="fas fa-ruler-combined"></i> {{ room.size }}</span>
+                    </div>
+                    <div class="amenities-grid">
+                        {% for amenity in room.amenities[:4] %}
+                        <span class="amenity-tag"><i class="fas fa-check"></i> {{ amenity }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="room-footer">
+                        <a href="{{ url_for('room_detail', room_id=room._id) }}" class="btn btn-primary btn-sm">
+                            View Details <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div style="text-align:center;margin-top:2.5rem;">
+            <a href="{{ url_for('rooms') }}" class="btn btn-outline btn-lg">View All Rooms <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- Amenities Section -->
+<section class="section amenities-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>World-Class Amenities</h2>
+            <p>Everything you need for a memorable stay</p>
+        </div>
+        <div class="amenities-grid-large">
+            <div class="amenity-card"><i class="fas fa-wifi"></i><h4>High-Speed WiFi</h4><p>Stay connected with complimentary high-speed internet throughout the resort.</p></div>
+            <div class="amenity-card"><i class="fas fa-swimming-pool"></i><h4>Infinity Pool</h4><p>Relax and unwind in our stunning infinity pool with panoramic views.</p></div>
+            <div class="amenity-card"><i class="fas fa-spa"></i><h4>Spa & Wellness</h4><p>Rejuvenate your body and mind with our premium spa treatments.</p></div>
+            <div class="amenity-card"><i class="fas fa-utensils"></i><h4>Fine Dining</h4><p>Savor exquisite cuisine prepared by our world-renowned chefs.</p></div>
+            <div class="amenity-card"><i class="fas fa-dumbbell"></i><h4>Fitness Center</h4><p>State-of-the-art equipment for your daily workout routine.</p></div>
+            <div class="amenity-card"><i class="fas fa-car"></i><h4>Valet Parking</h4><p>Complimentary valet parking service for all our guests.</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <h2>Ready for Your Dream Vacation?</h2>
+        <p>Book your stay today and enjoy exclusive perks and discounts.</p>
+        <a href="{{ url_for('rooms') }}" class="btn btn-lg" style="background:white;color:#ea580c;box-shadow:0 4px 16px rgba(0,0,0,0.2);">
+            <i class="fas fa-calendar-check"></i> Book Now
+        </a>
+    </div>
+</section>
+{% endblock %}

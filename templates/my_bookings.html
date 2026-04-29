@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings - Luxe Haven Resort{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 2rem;">
+    <div class="container">
+        <div class="section-header">
+            <h2><i class="fas fa-calendar-check"></i> My Bookings</h2>
+            <p>Manage your reservations</p>
+        </div>
+
+        {% if bookings %}
+        <div class="bookings-list">
+            {% for booking in bookings %}
+            <div class="booking-card">
+                <div class="booking-image">
+                    <img src="{{ booking.room.images[0] if booking.room and booking.room.images else 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800' }}" alt="{{ booking.room.name if booking.room else 'Room' }}">
+                    <span class="booking-status status-{{ booking.status }}">{{ booking.status|title }}</span>
+                </div>
+                <div class="booking-details">
+                    <h3>{{ booking.room.name if booking.room else 'Unknown Room' }}</h3>
+                    <p class="room-type">{{ booking.room.room_type if booking.room else '' }}</p>
+                    
+                    <div class="booking-info-grid">
+                        <div class="info-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div>
+                                <span class="label">Check-in</span>
+                                <span class="value">{{ booking.check_in }}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div>
+                                <span class="label">Check-out</span>
+                                <span class="value">{{ booking.check_out }}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-moon"></i>
+                            <div>
+                                <span class="label">Nights</span>
+                                <span class="value">{{ booking.nights }}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-user"></i>
+                            <div>
+                                <span class="label">Guests</span>
+                                <span class="value">{{ booking.guests }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="booking-footer">
+                        <div class="booking-price">
+                            <span class="label">Total</span>
+                            <span class="value">₹{{ "%.2f"|format(booking.total_price) }}</span>
+                        </div>
+                        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+                            {% if booking.advance_paid %}
+                            <div style="font-size:0.8rem;">
+                                <span style="color:#16a34a;font-weight:600;">Paid: ₹{{ "%.0f"|format(booking.advance_paid) }}</span>
+                                {% if booking.remaining_balance and booking.remaining_balance > 0 %}
+                                <span style="color:#dc2626;font-weight:600;margin-left:0.5rem;">Due: ₹{{ "%.0f"|format(booking.remaining_balance) }}</span>
+                                {% else %}
+                                <span style="color:#16a34a;font-weight:600;margin-left:0.5rem;">✓ Fully Paid</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            {% if booking.status in ['pending', 'confirmed'] %}
+                            <form method="POST" action="{{ url_for('cancel_booking', booking_id=booking._id) }}" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <h3>No bookings yet</h3>
+            <p>You haven't made any reservations yet. Explore our rooms and book your perfect stay!</p>
+            <a href="{{ url_for('rooms') }}" class="btn btn-primary">
+                <i class="fas fa-bed"></i> Browse Rooms
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

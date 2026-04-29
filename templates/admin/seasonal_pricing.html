@@ -1,0 +1,107 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Seasonal Pricing{% endblock %}
+{% block page_title %}Seasonal Pricing Management{% endblock %}
+{% block breadcrumb %}Seasonal Pricing{% endblock %}
+
+{% block content %}
+<div class="filters-bar">
+    <div class="search-box" style="flex: 0 0 auto;">
+        <select class="form-select" style="width: 250px;" onchange="window.location.href='?room_id='+this.value">
+            <option value="">All Rooms</option>
+            {% for room in rooms %}
+            <option value="{{ room._id }}" {% if selected_room == room._id|string %}selected{% endif %}">{{ room.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('add-pricing-modal')">
+        <i class="fas fa-plus"></i> Add Pricing Rule
+    </button>
+</div>
+
+<div class="data-card">
+    <div class="data-header">
+        <h3><i class="fas fa-tags"></i> Seasonal Pricing Rules</h3>
+        <span style="color: var(--text-muted);">{{ pricing|length }} rules configured</span>
+    </div>
+    <div class="pricing-list" style="padding: 1.5rem;">
+        {% for price in pricing %}
+        <div class="pricing-item">
+            <div class="pricing-info">
+                <h4>{{ price.month_name }}</h4>
+                <p>Room: {{ rooms|selectattr('_id', 'equalto', price.room_id)|map(attribute='name')|first or 'Unknown' }}</p>
+                <p><span class="badge badge-info">{{ price.reason or 'Seasonal' }}</span></p>
+            </div>
+            <div class="pricing-multiplier">×{{ price.price_multiplier }}</div>
+            <div class="pricing-actions">
+                <a href="{{ url_for('delete_seasonal_pricing', pricing_id=price._id) }}" class="btn-icon delete" 
+                   onclick="return confirm('Delete this pricing rule?')" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+            <i class="fas fa-tags" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <h3>No pricing rules configured</h3>
+            <p>Add seasonal pricing rules to adjust room rates based on demand.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Add Pricing Modal -->
+<div class="modal-overlay" id="add-pricing-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-plus"></i> Add Seasonal Pricing</h2>
+            <button class="close-btn" onclick="closeModal('add-pricing-modal')">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('add_seasonal_pricing') }}">
+            <div class="form-group">
+                <label>Room</label>
+                <select name="room_id" class="form-select" required>
+                    {% for room in rooms %}
+                    <option value="{{ room._id }}">{{ room.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Month</label>
+                <select name="month" class="form-select" required>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Month Name</label>
+                <input type="text" name="month_name" class="form-control" placeholder="e.g. Peak Season" required>
+            </div>
+            <div class="form-group">
+                <label>Price Multiplier</label>
+                <input type="number" name="price_multiplier" class="form-control" step="0.1" min="0.1" max="5" value="1.0" required>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">1.0 = base price, 1.5 = 50% increase</p>
+            </div>
+            <div class="form-group">
+                <label>Reason</label>
+                <input type="text" name="reason" class="form-control" placeholder="e.g. Peak Season, Holiday Period">
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('add-pricing-modal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Rule</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

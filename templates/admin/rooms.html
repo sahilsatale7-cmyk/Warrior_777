@@ -1,0 +1,225 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Rooms{% endblock %}
+{% block page_title %}Room Management{% endblock %}
+{% block breadcrumb %}Rooms{% endblock %}
+
+{% block content %}
+<div class="data-card">
+    <div class="data-header">
+        <h3><i class="fas fa-bed"></i> All Rooms</h3>
+        <button class="btn btn-primary btn-sm" onclick="openModal('add-room-modal')">
+            <i class="fas fa-plus"></i> Add Room
+        </button>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Room</th>
+                <th>Type</th>
+                <th>Price/Night</th>
+                <th>Guests</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for room in rooms %}
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <img src="{{ room.images[0] if room.images else 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800' }}" 
+                             style="width: 60px; height: 45px; object-fit: cover; border-radius: 6px;" alt="">
+                        <div>
+                            <div style="font-weight: 600;">{{ room.name }}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">{{ room.size }} | {{ room.bed_type }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ room.room_type }}</td>
+                <td style="font-weight: 600;">₹{{ "%.2f"|format(room.base_price) }}</td>
+                <td>{{ room.max_guests }}</td>
+                <td>
+                    <span class="badge badge-{{ 'success' if room.is_active else 'danger' }}">
+                        {{ 'Active' if room.is_active else 'Inactive' }}
+                    </span>
+                </td>
+                <td class="actions">
+                    <button class="btn-icon edit" onclick="editRoom('{{ room._id }}')" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <a href="{{ url_for('delete_room', room_id=room._id) }}" class="btn-icon delete" 
+                       onclick="return confirm('Delete this room? All associated bookings will be removed.')" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem;">No rooms found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Room Modal -->
+<div class="modal-overlay" id="add-room-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-plus"></i> Add New Room</h2>
+            <button class="close-btn" onclick="closeModal('add-room-modal')">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('add_room') }}">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Room Name</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Room Type</label>
+                    <select name="room_type" class="form-select" required>
+                        <option>Standard</option>
+                        <option>Deluxe</option>
+                        <option>Suite</option>
+                        <option>Family</option>
+                        <option>Penthouse</option>
+                        <option>Single</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Base Price (₹)</label>
+                    <input type="number" name="base_price" class="form-control" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Max Guests</label>
+                    <input type="number" name="max_guests" class="form-control" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Bed Type</label>
+                    <input type="text" name="bed_type" class="form-control" placeholder="e.g. King, Queen" required>
+                </div>
+                <div class="form-group">
+                    <label>Room Size</label>
+                    <input type="text" name="size" class="form-control" placeholder="e.g. 45 sqm">
+                </div>
+                <div class="form-group full-width">
+                    <label>Description</label>
+                    <textarea name="description" class="form-textarea" required></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label>Amenities (comma-separated)</label>
+                    <input type="text" name="amenities" class="form-control" placeholder="WiFi, TV, Mini Bar, ...">
+                </div>
+                <div class="form-group full-width">
+                    <label>Image URLs (comma-separated)</label>
+                    <input type="text" name="images" class="form-control" placeholder="https://...">
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('add-room-modal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Room</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Room Modal -->
+<div class="modal-overlay" id="edit-room-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-edit"></i> Edit Room</h2>
+            <button class="close-btn" onclick="closeModal('edit-room-modal')">&times;</button>
+        </div>
+        <form id="edit-form" method="POST" action="">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Room Name</label>
+                    <input type="text" name="name" id="edit-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Room Type</label>
+                    <select name="room_type" id="edit-type" class="form-select" required>
+                        <option>Standard</option>
+                        <option>Deluxe</option>
+                        <option>Suite</option>
+                        <option>Family</option>
+                        <option>Penthouse</option>
+                        <option>Single</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Base Price (₹)</label>
+                    <input type="number" name="base_price" id="edit-price" class="form-control" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Max Guests</label>
+                    <input type="number" name="max_guests" id="edit-guests" class="form-control" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Bed Type</label>
+                    <input type="text" name="bed_type" id="edit-bed" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Room Size</label>
+                    <input type="text" name="size" id="edit-size" class="form-control">
+                </div>
+                <div class="form-group full-width">
+                    <label>Description</label>
+                    <textarea name="description" id="edit-desc" class="form-textarea" required></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label>Amenities (comma-separated)</label>
+                    <input type="text" name="amenities" id="edit-amenities" class="form-control">
+                </div>
+                <div class="form-group full-width">
+                    <label>Image URLs (comma-separated)</label>
+                    <input type="text" name="images" id="edit-images" class="form-control">
+                </div>
+                <div class="form-group full-width">
+                    <label>
+                        <input type="checkbox" name="is_active" id="edit-active"> Room Active
+                    </label>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('edit-room-modal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Room</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const roomsData = {{ rooms | tojson }};
+
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+function editRoom(roomId) {
+    const room = roomsData.find(r => r._id === roomId);
+    if (!room) return;
+    
+    document.getElementById('edit-form').action = '/admin/rooms/edit/' + roomId;
+    document.getElementById('edit-name').value = room.name;
+    document.getElementById('edit-type').value = room.room_type;
+    document.getElementById('edit-price').value = room.base_price;
+    document.getElementById('edit-guests').value = room.max_guests;
+    document.getElementById('edit-bed').value = room.bed_type;
+    document.getElementById('edit-size').value = room.size || '';
+    document.getElementById('edit-desc').value = room.description;
+    document.getElementById('edit-amenities').value = (room.amenities || []).join(',');
+    document.getElementById('edit-images').value = (room.images || []).join(',');
+    document.getElementById('edit-active').checked = room.is_active;
+    
+    openModal('edit-room-modal');
+}
+</script>
+{% endblock %}

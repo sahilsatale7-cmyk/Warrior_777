@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# MongoDB local data
+mongodb/
+
+# Environment variables
+.env
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Byte-compiled
+*.pyc

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Luxe Haven Resort{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='images/favicon-192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='images/favicon-512.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon-192.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="{{ url_for('index') }}" class="logo">
+                <span class="logo-icon"><i class="fas fa-hotel"></i></span>
+                Luxe Haven
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="{{ url_for('rooms') }}" class="{% if request.endpoint == 'rooms' %}active{% endif %}"><i class="fas fa-bed"></i> Rooms</a></li>
+                <li><a href="{{ url_for('rooms') }}" class="{% if request.endpoint == 'booking' %}active{% endif %}"><i class="fas fa-calendar-check"></i> Book Now</a></li>
+                {% if session.admin %}
+                <li><a href="{{ url_for('admin_dashboard') }}" class="{% if 'admin' in request.endpoint %}active{% endif %}"><i class="fas fa-shield-alt"></i> Admin Portal</a></li>
+                {% endif %}
+                {% if session.user_id %}
+                <li><a href="{{ url_for('my_bookings') }}" class="{% if request.endpoint == 'my_bookings' %}active{% endif %}"><i class="fas fa-list"></i> My Bookings</a></li>
+                {% endif %}
+                <!-- Mobile-only auth links -->
+                <li class="mobile-auth-links">
+                    {% if session.user_id %}
+                        <span class="mobile-user"><i class="fas fa-user"></i> {{ session.user_name }}</span>
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm" style="width:100%;margin-top:0.5rem;">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm" style="width:100%;">Login</a>
+                    {% endif %}
+                    <a href="{{ url_for('rooms') }}" class="btn btn-primary btn-sm" style="width:100%;margin-top:0.5rem;"><i class="fas fa-calendar-check"></i> Book Now</a>
+                </li>
+            </ul>
+            <div class="nav-auth">
+                {% if session.user_id %}
+                    <span style="color:var(--text-light);font-size:.875rem;"><i class="fas fa-user"></i> {{ session.user_name }}</span>
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm">Login</a>
+                {% endif %}
+                <a href="{{ url_for('rooms') }}" class="btn btn-primary btn-sm"><i class="fas fa-calendar-check"></i> Book Now</a>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+    <!-- Mobile overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container" style="padding-top:1.25rem;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3><i class="fas fa-hotel"></i> Luxe Haven Resort</h3>
+                    <p>Experience luxury and comfort at its finest. Our world-class amenities and exceptional service ensure an unforgettable stay in paradise.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('index') }}">Home</a></li>
+                        <li><a href="{{ url_for('rooms') }}">Rooms & Suites</a></li>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Services</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Spa & Wellness</a></li>
+                        <li><a href="#">Fine Dining</a></li>
+                        <li><a href="#">Conference</a></li>
+                        <li><a href="#">Events</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Luxury Ave, Paradise City</li>
+                        <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
+                        <li><i class="fas fa-envelope"></i> info@luxehaven.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Luxe Haven Resort. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

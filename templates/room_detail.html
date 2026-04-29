@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}{{ room.name }} - Luxe Haven Resort{% endblock %}
+
+{% block extra_css %}
+<style>
+.room-gallery {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.room-gallery img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: var(--radius);
+}
+.room-gallery .side-images {
+    display: grid;
+    gap: 1rem;
+}
+.room-gallery .side-images img {
+    height: 192px;
+}
+.room-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+}
+.room-info-panel h1 {
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+.room-meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-light);
+}
+.room-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.room-description {
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+}
+.amenities-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+.amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg);
+    border-radius: 8px;
+}
+.amenity-item i {
+    color: var(--accent);
+    width: 20px;
+}
+.booking-panel {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 100px;
+}
+.booking-panel h3 {
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--bg);
+}
+.price-display {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+.price-display small {
+    font-size: 1rem;
+    color: var(--text-light);
+    font-weight: 400;
+}
+.date-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text);
+}
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--bg);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+.calendar-section {
+    margin-top: 2rem;
+}
+.calendar-section h3 {
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    text-align: center;
+}
+.calendar-day-header {
+    font-weight: 600;
+    color: var(--text-light);
+    padding: 0.5rem;
+    font-size: 0.85rem;
+}
+.calendar-day {
+    padding: 0.75rem 0.5rem;
+    border-radius: 8px;
+    background: var(--bg);
+    font-size: 0.9rem;
+}
+.calendar-day.unavailable {
+    background: #fee2e2;
+    color: #991b1b;
+    text-decoration: line-through;
+}
+.calendar-day.available {
+    background: #dcfce7;
+    color: #166534;
+}
+.seasonal-info {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-radius: var(--radius);
+}
+.seasonal-info h3 {
+    color: #92400e;
+    margin-bottom: 1rem;
+}
+.seasonal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-radius: 20px;
+    margin: 0.25rem;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+@media (max-width: 768px) {
+    .room-gallery {
+        grid-template-columns: 1fr;
+    }
+    .room-gallery img {
+        height: 250px;
+    }
+    .room-details-grid {
+        grid-template-columns: 1fr;
+    }
+    .booking-panel {
+        position: static;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 1rem;">
+    <div class="container">
+        <!-- Image Gallery -->
+        <div class="room-gallery">
+            <img src="{{ room.images[0] if room.images else 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800' }}" alt="{{ room.name }}">
+            <div class="side-images">
+                {% for img in room.images[1:3] %}
+                <img src="{{ img }}" alt="{{ room.name }}">
+                {% else %}
+                <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800" alt="Room view">
+                <img src="https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800" alt="Room detail">
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Room Details Grid -->
+        <div class="room-details-grid">
+            <!-- Left Panel - Info -->
+            <div class="room-info-panel">
+                <h1>{{ room.name }}</h1>
+                <div class="room-meta">
+                    <span><i class="fas fa-bed"></i> {{ room.bed_type }}</span>
+                    <span><i class="fas fa-users"></i> Up to {{ room.max_guests }} guests</span>
+                    <span><i class="fas fa-expand"></i> {{ room.size }}</span>
+                </div>
+
+                <div class="room-description">
+                    <p>{{ room.description }}</p>
+                </div>
+
+                <h3 style="color: var(--primary); margin-bottom: 1rem;"><i class="fas fa-concierge-bell"></i> Amenities</h3>
+                <div class="amenities-list">
+                    {% for amenity in room.amenities %}
+                    <div class="amenity-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ amenity }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Seasonal Pricing Info -->
+                {% if seasonal_pricing %}
+                <div class="seasonal-info">
+                    <h3><i class="fas fa-tags"></i> Seasonal Pricing</h3>
+                    <p style="margin-bottom: 1rem; color: #92400e;">Prices vary throughout the year based on demand:</p>
+                    {% for sp in seasonal_pricing %}
+                    <span class="seasonal-badge">
+                        <i class="fas fa-calendar-alt"></i>
+                        {{ sp.month_name }}: {{ "%.0f"|format((sp.price_multiplier - 1) * 100) }}% {{ 'increase' if sp.price_multiplier > 1 else 'decrease' }}
+                        {% if sp.reason %}({{ sp.reason }}){% endif %}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Availability Calendar -->
+                <div class="calendar-section">
+                    <h3><i class="fas fa-calendar-alt"></i> Availability Calendar</h3>
+                    <p style="color: var(--text-light); margin-bottom: 1rem; font-size: 0.9rem;">
+                        <span style="display: inline-block; width: 12px; height: 12px; background: #dcfce7; border-radius: 3px; margin-right: 4px;"></span> Available
+                        <span style="display: inline-block; width: 12px; height: 12px; background: #fee2e2; border-radius: 3px; margin-left: 1rem; margin-right: 4px;"></span> Booked
+                    </p>
+                    <div id="availability-calendar"></div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Booking -->
+            <div class="booking-panel">
+                <h3><i class="fas fa-calendar-check"></i> Book This Room</h3>
+                <div class="price-display">
+₹{{ "%.0f"|format(room.base_price) }}<small>/night</small>
+                </div>
+
+                <form action="{{ url_for('book_room', room_id=room._id) }}" method="GET" style="margin-top: 1.5rem;">
+                    <div class="date-inputs">
+                        <div class="form-group">
+                            <label><i class="fas fa-sign-in-alt"></i> Check-in</label>
+                            <input type="date" name="check_in" class="form-control" id="check-in" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-sign-out-alt"></i> Check-out</label>
+                            <input type="date" name="check_out" class="form-control" id="check-out" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-search"></i> Check Availability
+                    </button>
+                </form>
+
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid var(--bg);">
+                    <h4 style="color: var(--primary); margin-bottom: 0.75rem;"><i class="fas fa-info-circle"></i> Room Policies</h4>
+                    <ul style="color: var(--text-light); font-size: 0.9rem; line-height: 1.8; list-style: none; padding: 0;">
+                        <li><i class="fas fa-clock" style="width: 20px; color: var(--accent);"></i> Check-in: 3:00 PM</li>
+                        <li><i class="fas fa-clock" style="width: 20px; color: var(--accent);"></i> Check-out: 11:00 AM</li>
+                        <li><i class="fas fa-ban" style="width: 20px; color: var(--accent);"></i> Free cancellation up to 24h</li>
+                        <li><i class="fas fa-wifi" style="width: 20px; color: var(--accent);"></i> Free WiFi included</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const unavailableDates = {{ unavailable_dates | tojson }};
+
+// Disable unavailable dates in date inputs
+function isDateUnavailable(dateStr) {
+    return unavailableDates.includes(dateStr);
+}
+
+// Set minimum date to today
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('check-in').setAttribute('min', today);
+document.getElementById('check-out').setAttribute('min', today);
+
+// Update check-out min when check-in changes
+document.getElementById('check-in').addEventListener('change', function() {
+    const checkIn = new Date(this.value);
+    checkIn.setDate(checkIn.getDate() + 1);
+    document.getElementById('check-out').setAttribute('min', checkIn.toISOString().split('T')[0]);
+});
+
+// Generate simple availability calendar for current month
+function generateCalendar() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const daysInMonth = new Date(year, month, 0).getDate();
+    
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    let html = '<div class="calendar-grid">';
+    
+    days.forEach(d => {
+        html += `<div class="calendar-day-header">${d}</div>`;
+    });
+    
+    const firstDay = new Date(year, month - 1, 1).getDay();
+    for (let i = 0; i < firstDay; i++) {
+        html += '<div></div>';
+    }
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const isUnavailable = unavailableDates.includes(dateStr);
+        const isPast = new Date(dateStr) < new Date(today);
+        const cls = isUnavailable || isPast ? 'unavailable' : 'available';
+        html += `<div class="calendar-day ${cls}">${day}</div>`;
+    }
+    
+    html += '</div>';
+    document.getElementById('availability-calendar').innerHTML = html;
+}
+
+generateCalendar();
+</script>
+{% endblock %}
+

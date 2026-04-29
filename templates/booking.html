@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Booking - Luxe Haven Resort{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 2rem;">
+    <div class="container">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <h1 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-calendar-check"></i> Complete Your Booking</h1>
+            <p style="color: var(--text-light); margin-bottom: 2rem;">Please fill in your details to confirm the reservation</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <!-- Booking Form -->
+                <form method="POST" action="{{ url_for('book_room', room_id=room._id) }}">
+                    <input type="hidden" name="check_in" value="{{ check_in }}">
+                    <input type="hidden" name="check_out" value="{{ check_out }}">
+
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="guest_name" class="form-control" value="{{ session.user_name }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="guest_email" class="form-control" value="{{ session.user_email }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" name="guest_phone" class="form-control" placeholder="+91 98765 43210" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>ID Type</label>
+                            <select name="id_type" class="form-select" required>
+                                <option value="">Select ID Type</option>
+                                <option value="Passport">Passport</option>
+                                <option value="Aadhar Card">Aadhar Card</option>
+                                <option value="Driver's License">Driver's License</option>
+                                <option value="PAN Card">PAN Card</option>
+                                <option value="Voter ID">Voter ID</option>
+                                <option value="National ID">National ID</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>ID Number</label>
+                            <input type="text" name="id_number" class="form-control" placeholder="e.g. AB1234567" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Country / Location</label>
+                        <input type="text" name="location" class="form-control" placeholder="e.g. India" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Number of Guests</label>
+                        <select name="guests" class="form-select">
+                            {% for i in range(1, room.max_guests + 1) %}
+                            <option value="{{ i }}">{{ i }} Guest{% if i > 1 %}s{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Special Requests</label>
+                        <textarea name="special_requests" class="form-control" rows="3" placeholder="Any special requests or preferences..."></textarea>
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div style="border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; background: #f8fafc;">
+                        <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--primary);"><i class="fas fa-credit-card"></i> Payment Details</h4>
+                        
+                        <div class="form-group">
+                            <label>Payment Method</label>
+                            <select name="payment_method" class="form-select" required>
+                                <option value="">Select Payment Method</option>
+                                <option value="Cash">Cash</option>
+                                <option value="UPI">UPI</option>
+                                <option value="Credit Card">Credit Card</option>
+                                <option value="Debit Card">Debit Card</option>
+                                <option value="Net Banking">Net Banking</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Advance Payment (₹)</label>
+                            <input type="number" name="advance_paid" id="advanceInput" class="form-control" 
+                                   placeholder="Enter advance amount" min="0" step="0.01"
+                                   max="{{ total_price }}" value="0"
+                                   oninput="updateRemaining()">
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.9rem;">
+                            <span style="color: var(--text-muted);">Total Amount:</span>
+                            <span style="font-weight: 700;" id="totalDisplay">₹{{ "%.2f"|format(total_price) }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.9rem; border-top: 1px solid #e2e8f0;">
+                            <span style="color: var(--text-muted);">Advance Paid:</span>
+                            <span style="font-weight: 700; color: #16a34a;" id="advanceDisplay">₹0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.95rem; border-top: 1px solid #e2e8f0;">
+                            <span style="font-weight: 600; color: #dc2626;">Remaining Balance:</span>
+                            <span style="font-weight: 800; color: #dc2626;" id="remainingDisplay">₹{{ "%.2f"|format(total_price) }}</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-check-circle"></i> Confirm Booking
+                    </button>
+                </form>
+
+                <!-- Booking Summary -->
+                <div class="booking-panel" style="position: static;">
+                    <h3><i class="fas fa-receipt"></i> Booking Summary</h3>
+                    
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                        <img src="{{ room.images[0] if room.images else 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800' }}" 
+                             style="width: 100px; height: 80px; object-fit: cover; border-radius: var(--radius);" alt="{{ room.name }}">
+                        <div>
+                            <h4 style="color: var(--primary);">{{ room.name }}</h4>
+                            <p style="color: var(--text-light); font-size: 0.9rem;">{{ room.room_type }}</p>
+                        </div>
+
+                    <div class="price-breakdown">
+                        <div class="price-row">
+                            <span>Check-in</span>
+                            <span>{{ check_in }}</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Check-out</span>
+                            <span>{{ check_out }}</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Nights</span>
+                            <span>{{ nights }}</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Guests</span>
+                            <span>Up to {{ room.max_guests }}</span>
+                        </div>
+                        <div class="price-row total">
+                            <span>Total Price</span>
+                            <span>₹{{ "%.2f"|format(total_price) }}</span>
+                        </div>
+
+                    <div style="background: #dbeafe; padding: 1rem; border-radius: var(--radius); margin-top: 1rem;">
+                        <p style="font-size: 0.85rem; color: #1e40af; margin: 0;">
+                            <i class="fas fa-info-circle"></i> Your booking will be confirmed instantly after submission.
+                        </p>
+                    </div>
+            </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const totalPrice = {{ total_price }};
+
+function updateRemaining() {
+    const advance = parseFloat(document.getElementById('advanceInput').value) || 0;
+    const remaining = Math.max(0, totalPrice - advance);
+    
+    document.getElementById('advanceDisplay').textContent = '₹' + advance.toFixed(2);
+    document.getElementById('remainingDisplay').textContent = '₹' + remaining.toFixed(2);
+    
+    // Change color based on payment status
+    const remainEl = document.getElementById('remainingDisplay');
+    if (remaining === 0) {
+        remainEl.style.color = '#16a34a';
+        remainEl.parentElement.querySelector('span:first-child').style.color = '#16a34a';
+        remainEl.parentElement.querySelector('span:first-child').textContent = 'Fully Paid ✓';
+    } else {
+        remainEl.style.color = '#dc2626';
+        remainEl.parentElement.querySelector('span:first-child').style.color = '#dc2626';
+        remainEl.parentElement.querySelector('span:first-child').textContent = 'Remaining Balance:';
+    }
+}
+</script>
+{% endblock %}

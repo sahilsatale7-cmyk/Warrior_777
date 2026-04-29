@@ -1,0 +1,97 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Settings{% endblock %}
+{% block page_title %}Admin Settings{% endblock %}
+{% block breadcrumb %}Settings{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+    <!-- Change Password -->
+    <div class="data-card">
+        <div class="data-header">
+            <h3><i class="fas fa-lock"></i> Change Admin Password</h3>
+        </div>
+        <div style="padding: 1.5rem;">
+            <form method="POST" action="{{ url_for('admin_settings') }}">
+                <input type="hidden" name="action" value="change_password">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" name="current_password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" name="new_password" class="form-control" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" name="confirm_password" class="form-control" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Password
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- System Info -->
+    <div class="data-card">
+        <div class="data-header">
+            <h3><i class="fas fa-info-circle"></i> System Information</h3>
+        </div>
+        <div style="padding: 1.5rem;">
+            <div style="display: grid; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: #f8fafc; border-radius: 8px;">
+                    <span>Database</span>
+                    <strong>{{ db_source }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: #f8fafc; border-radius: 8px;">
+                    <span>Total Rooms</span>
+                    <strong>{{ stats.total_rooms }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: #f8fafc; border-radius: 8px;">
+                    <span>Total Bookings</span>
+                    <strong>{{ stats.total_bookings }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: #f8fafc; border-radius: 8px;">
+                    <span>Total Guests</span>
+                    <strong>{{ stats.total_guests }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: #f8fafc; border-radius: 8px;">
+                    <span>Total Revenue</span>
+                    <strong>₹{{ "%.2f"|format(stats.total_revenue) }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Management -->
+<div class="data-card" style="margin-top: 1.5rem;">
+    <div class="data-header">
+        <h3><i class="fas fa-database"></i> Data Management</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <div style="text-align: center; padding: 1.5rem; border: 2px dashed var(--border); border-radius: 12px;">
+                <i class="fas fa-bed" style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                <h4>{{ stats.total_rooms }}</h4>
+                <p style="color: var(--text-muted);">Rooms</p>
+                <a href="{{ url_for('admin_rooms') }}" class="btn btn-outline btn-sm" style="margin-top: 0.5rem;">Manage</a>
+            </div>
+            <div style="text-align: center; padding: 1.5rem; border: 2px dashed var(--border); border-radius: 12px;">
+                <i class="fas fa-calendar-check" style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                <h4>{{ stats.total_bookings }}</h4>
+                <p style="color: var(--text-muted);">Bookings</p>
+                <a href="{{ url_for('admin_bookings') }}" class="btn btn-outline btn-sm" style="margin-top: 0.5rem;">Manage</a>
+            </div>
+            <div style="text-align: center; padding: 1.5rem; border: 2px dashed var(--border); border-radius: 12px;">
+                <i class="fas fa-users" style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                <h4>{{ stats.total_guests }}</h4>
+                <p style="color: var(--text-muted);">Guests</p>
+                <a href="{{ url_for('admin_guests') }}" class="btn btn-outline btn-sm" style="margin-top: 0.5rem;">Manage</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,253 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Bookings{% endblock %}
+{% block page_title %}Bookings Management{% endblock %}
+{% block breadcrumb %}Manage reservations and view availability calendar{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start;">
+    <!-- Left: Availability Calendar -->
+    <div class="data-card">
+        <div class="data-header" style="align-items: center;">
+            <h3><i class="fas fa-calendar-alt"></i> Availability Calendar</h3>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="?year={{ prev_year }}&month={{ prev_month }}&status={{ status_filter }}" 
+                   style="width:32px;height:32px;border-radius:50%;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:var(--text-muted);text-decoration:none;transition:all .2s;">
+                    <i class="fas fa-chevron-left" style="font-size:0.75rem;"></i>
+                </a>
+                <span style="font-weight:700;font-size:1.1rem;min-width:140px;text-align:center;">{{ month_name }}</span>
+                <a href="?year={{ next_year }}&month={{ next_month }}&status={{ status_filter }}" 
+                   style="width:32px;height:32px;border-radius:50%;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:var(--text-muted);text-decoration:none;transition:all .2s;">
+                    <i class="fas fa-chevron-right" style="font-size:0.75rem;"></i>
+                </a>
+            </div>
+        </div>
+        <div class="cal-grid">
+            <div class="cal-header">Sun</div>
+            <div class="cal-header">Mon</div>
+            <div class="cal-header">Tue</div>
+            <div class="cal-header">Wed</div>
+            <div class="cal-header">Thu</div>
+            <div class="cal-header">Fri</div>
+            <div class="cal-header">Sat</div>
+            {% for cell in calendar_days %}
+            <div class="cal-day {% if cell.is_today %}cal-today{% endif %} {% if not cell.day %}cal-empty{% endif %}">
+                {% if cell.day %}
+                <span class="cal-day-num {% if cell.is_today %}today-num{% endif %}">{{ cell.day }}</span>
+                {% for bk in cell.bookings[:2] %}
+                <div class="cal-booking cal-booking-{{ bk.status }}">
+                    {{ bk.guest }} {{ bk.room_num }}
+                </div>
+                {% endfor %}
+                {% if cell.bookings|length > 2 %}
+                <div class="cal-more">+{{ cell.bookings|length - 2 }} more</div>
+                {% endif %}
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Right: Recent Bookings Panel -->
+    <div class="data-card" style="position: sticky; top: 1rem;">
+        <div class="data-header">
+            <h3>Recent Bookings</h3>
+        </div>
+        
+        <!-- Search -->
+        <div style="padding: 0 1.25rem;">
+            <div class="search-box" style="margin-bottom: 0.75rem;">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-control" placeholder="Search bookings..." onkeyup="filterCards(this.value)" style="font-size:0.85rem;">
+            </div>
+        </div>
+
+        <!-- Status Filter Tabs -->
+        <div style="display:flex;gap:0.25rem;padding:0 1.25rem 1rem;flex-wrap:wrap;">
+            <a href="?year={{ year }}&month={{ month }}" 
+               class="status-tab {% if not status_filter %}active{% endif %}">All</a>
+            <a href="?year={{ year }}&month={{ month }}&status=pending" 
+               class="status-tab {% if status_filter == 'pending' %}active{% endif %}">pending</a>
+            <a href="?year={{ year }}&month={{ month }}&status=confirmed" 
+               class="status-tab {% if status_filter == 'confirmed' %}active{% endif %}">confirmed</a>
+            <a href="?year={{ year }}&month={{ month }}&status=checked_in" 
+               class="status-tab {% if status_filter == 'checked_in' %}active{% endif %}">checked in</a>
+            <a href="?year={{ year }}&month={{ month }}&status=checked_out" 
+               class="status-tab {% if status_filter == 'checked_out' %}active{% endif %}">checked out</a>
+        </div>
+
+        <!-- Booking Cards -->
+        <div class="booking-cards-list" id="booking-cards">
+            {% for booking in bookings %}
+            <div class="booking-card-item" data-searchable="{{ booking.guest_name|lower }} {{ booking.guest_email|lower }} {{ booking.room.name|lower if booking.room else '' }}">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div>
+                        <div style="font-weight:700;font-size:0.95rem;color:var(--text-dark);">{{ booking.guest_name }}</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);">
+                            {{ booking.room.room_type|lower if booking.room else 'room' }} #{{ booking.room_id[-3:] if booking.room_id else '' }}
+                        </div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;">
+                            {{ booking.check_in }} - {{ booking.check_out }}
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="badge badge-{{ booking.status }}" style="font-size:0.7rem;padding:0.2rem 0.5rem;">
+                            {% if booking.status == 'confirmed' %}<i class="fas fa-check-circle"></i>{% endif %}
+                            {% if booking.status == 'checked_out' %}<i class="fas fa-sign-out-alt"></i>{% endif %}
+                            {{ booking.status }}
+                        </span>
+                        <div style="font-weight:700;font-size:0.95rem;color:var(--primary);margin-top:4px;">₹{{ "%.0f"|format(booking.total_price) }}</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+                    <a href="{{ url_for('admin_booking_detail', booking_id=booking._id) }}" class="btn-sm-action">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                    <form method="POST" action="{{ url_for('update_booking_status', booking_id=booking._id) }}" style="display:inline;">
+                        <select name="status" class="form-select" style="font-size:0.75rem;padding:0.2rem 0.4rem;width:auto;" onchange="this.form.submit()">
+                            <option value="pending" {% if booking.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                            <option value="checked_in" {% if booking.status == 'checked_in' %}selected{% endif %}>Checked In</option>
+                            <option value="checked_out" {% if booking.status == 'checked_out' %}selected{% endif %}>Checked Out</option>
+                            <option value="cancelled" {% if booking.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div style="text-align:center;padding:2rem;color:var(--text-muted);">
+                <i class="fas fa-calendar-times" style="font-size:2rem;margin-bottom:0.5rem;display:block;"></i>
+                No bookings found
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Calendar Grid */
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-top: 1px solid #e2e8f0;
+    border-left: 1px solid #e2e8f0;
+}
+.cal-header {
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: #f8fafc;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+.cal-day {
+    min-height: 90px;
+    padding: 0.35rem;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    position: relative;
+    background: white;
+    transition: background 0.15s;
+}
+.cal-day:hover:not(.cal-empty) { background: #fefce8; }
+.cal-empty { background: #f8fafc; }
+.cal-today { background: #fffbeb !important; }
+.cal-day-num {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 2px;
+}
+.today-num {
+    background: var(--primary);
+    color: white;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+.cal-booking {
+    font-size: 0.65rem;
+    padding: 1px 4px;
+    border-radius: 3px;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cal-booking-confirmed { background: #fed7aa; color: #c2410c; }
+.cal-booking-pending { background: #e0e7ff; color: #4338ca; }
+.cal-booking-checked_in { background: #bbf7d0; color: #15803d; }
+.cal-more { font-size: 0.6rem; color: var(--text-muted); margin-top: 1px; }
+
+/* Status Tabs */
+.status-tab {
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    text-decoration: none;
+    color: var(--text-muted);
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+.status-tab:hover { border-color: var(--primary); color: var(--primary); }
+.status-tab.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Booking Cards */
+.booking-cards-list {
+    max-height: 520px;
+    overflow-y: auto;
+    padding: 0 1.25rem 1.25rem;
+}
+.booking-card-item {
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s;
+}
+.booking-card-item:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(249,115,22,0.1);
+}
+.btn-sm-action {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.btn-sm-action:hover { border-color: var(--primary); color: var(--primary); }
+
+@media (max-width: 900px) {
+    .cal-grid + div { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterCards(query) {
+    query = query.toLowerCase();
+    document.querySelectorAll('.booking-card-item').forEach(card => {
+        const text = card.getAttribute('data-searchable') || '';
+        card.style.display = text.includes(query) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Guest Details{% endblock %}
+{% block page_title %}Guest Details{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('admin_guests') }}">Guests</a> / {{ guest.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 0 auto;">
+    <div class="data-card">
+        <!-- Header -->
+        <div style="padding: 1.5rem 1.5rem 0; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:1.1rem;">
+                    {{ guest.name[0]|upper }}{{ guest.name.split()[1][0]|upper if guest.name.split()|length > 1 else '' }}
+                </div>
+                <div>
+                    <h2 style="margin:0;font-size:1.4rem;font-weight:700;">{{ guest.name }}</h2>
+                    <p style="margin:0;color:var(--text-muted);font-size:0.9rem;">Guest since {{ guest.created_at[:10] if guest.created_at else 'N/A' }}</p>
+                </div>
+            </div>
+            <a href="{{ url_for('admin_guests') }}" style="width:36px;height:36px;border-radius:50%;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:var(--text-muted);text-decoration:none;transition:all .2s;font-size:1.1rem;" title="Close">
+                <i class="fas fa-times"></i>
+            </a>
+        </div>
+
+        <!-- Contact + Identification -->
+        <div style="padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <!-- Contact Information -->
+            <div style="border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem;">
+                <h4 style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 1rem;">Contact Information</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fas fa-envelope" style="color: var(--text-muted); width: 18px;"></i>
+                        <span style="font-size: 0.9rem;">{{ guest.email }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fas fa-phone" style="color: var(--text-muted); width: 18px;"></i>
+                        <span style="font-size: 0.9rem; color: var(--primary);">{{ guest.phone or 'N/A' }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fas fa-map-marker-alt" style="color: var(--text-muted); width: 18px;"></i>
+                        <span style="font-size: 0.9rem;">{{ guest.location or 'Not specified' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Identification -->
+            <div style="border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem;">
+                <h4 style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 1rem;">Identification</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div>
+                        <span style="font-size: 0.9rem; font-weight: 600;">
+                            {% if guest.id_type and guest.id_number %}
+                                {{ guest.id_type }}: {{ guest.id_number }}
+                            {% else %}
+                                No ID on file
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking History -->
+        <div style="padding: 0 1.5rem 1.5rem;">
+            <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">Booking History ({{ bookings|length }})</h3>
+            
+            {% for booking in bookings %}
+            <div style="border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem; transition: border-color 0.2s;" onmouseover="this.style.borderColor='#f97316'" onmouseout="this.style.borderColor='#e2e8f0'">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.95rem;">
+                            {{ booking.room.name if booking.room else booking.get('room_name', 'Room') }} #{{ booking.room_id[-3:] if booking.room_id else '' }}
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">
+                            {{ booking.check_in }} - {{ booking.check_out }}
+                        </div>
+                    </div>
+                    <span class="badge badge-{{ booking.status }}" style="font-size: 0.75rem;">
+                        {% if booking.status == 'checked_out' %}<i class="fas fa-check"></i>{% endif %}
+                        {{ booking.status }}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.85rem;">
+                    <span style="color: var(--text-dark); font-weight: 600;">Total: ₹{{ "%.0f"|format(booking.total_price) }}</span>
+                    <span style="color: var(--text-muted);">Booked: {{ booking.created_at[:10] if booking.created_at else 'N/A' }}</span>
+                </div>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 2rem; color: var(--text-muted); border: 1px solid #e2e8f0; border-radius: 10px;">
+                No bookings yet
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
