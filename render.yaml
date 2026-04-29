@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: luxe-haven-resort
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --config gunicorn_config.py
+    envVars:
+      - key: MONGO_URI
+        value: mongodb+srv://sahilsatale_db_user:Sahil%407071@cluster0.kkzit1u.mongodb.net/hotel_management?retryWrites=true&w=majority&appName=Cluster0&tlsAllowInvalidCertificates=true
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.11.0"
